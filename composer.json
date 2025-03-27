@@ -1,12 +1,12 @@
 {
-    "name": "bwicompanies/db2-driver",
-    "description": "DB2 for IBM iSeries drop-in Laravel driver",
+    "name": "rebeluca/db2-driver",
+    "description": "DB2 for IBM iSeries drop-in Laravel driver for PHP server running on IBM iSeries",
     "keywords": [
-        "BWICompanies",
+        "IBM iSeries",
         "laravel",
         "db2-driver"
     ],
-    "homepage": "https://github.com/bwicompanies/db2-driver",
+    "homepage": "https://github.com/rebeluca/db2-driver",
     "license": "MIT",
     "authors": [
         {
@@ -16,27 +16,27 @@
         }
     ],
     "require": {
-        "php": "^8.1",
-        "spatie/laravel-package-tools": "^1.13.0",
-        "illuminate/contracts": "^9|^10|^11",
-        "illuminate/support": "^9|^10|^11",
-        "illuminate/database": "^9.4|^10|^11"
+        "php": "^8.2",
+        "ext-pdo": "*",
+        "spatie/laravel-package-tools": "^1.20",
+        "illuminate/contracts": "^9|^10|^12",
+        "illuminate/support": "^9|^10|^12",
+        "illuminate/database": "^9.4|^10|^12"
     },
     "require-dev": {
-        "nunomaduro/collision": "^6.0",
-        "orchestra/testbench": "^7.0",
-        "pestphp/pest": "^1.21",
-        "pestphp/pest-plugin-laravel": "^1.1",
-        "phpunit/phpunit": "^9.5"
+        "nunomaduro/collision": "^8.6",
+        "orchestra/testbench": "*",
+        "pestphp/pest": "^3.7",
+        "pestphp/pest-plugin-laravel": "^3.1"
     },
     "autoload": {
         "psr-4": {
-            "BWICompanies\\DB2Driver\\": "src"
+            "rebeluca\\DB2Driver\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "BWICompanies\\DB2Driver\\Tests\\": "tests"
+            "rebeluca\\DB2Driver\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -56,8 +56,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "BWICompanies\\DB2Driver\\DB2DriverServiceProvider",
-                "BWICompanies\\DB2Driver\\DB2ServiceProvider"
+                "rebeluca\\DB2Driver\\DB2DriverServiceProvider",
+                "rebeluca\\DB2Driver\\DB2ServiceProvider"
             ]
         }
     },

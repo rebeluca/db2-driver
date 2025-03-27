@@ -1,6 +1,6 @@
 <?php
 
-namespace BWICompanies\DB2Driver\Schema;
+namespace rebeluca\DB2Driver\Schema;
 
 use Closure;
 use Illuminate\Database\Schema\Blueprint;
