@@ -8,26 +8,27 @@ use Illuminate\Database\Schema\Builder;
 
 class DB2Builder extends Builder
 {
+
     /**
      * Determine if the given table exists.
      */
     public function hasTable($table): bool
     {
-        $sql = $this->grammar->compileTableExists();
+        $sql         = $this->grammar->compileTableExists();
         $schemaTable = explode('.', $table);
 
         if (count($schemaTable) > 1) {
             $schema = $schemaTable[0];
-            $table = $this->connection->getTablePrefix().$schemaTable[1];
+            $table  = $this->connection->getTablePrefix() . $schemaTable[1];
         } else {
             $schema = $this->connection->getDefaultSchema();
-            $table = $this->connection->getTablePrefix().$table;
+            $table  = $this->connection->getTablePrefix() . $table;
         }
 
         return count($this->connection->select($sql, [
-            $schema,
-            $table,
-        ])) > 0;
+                $schema,
+                $table,
+            ])) > 0;
     }
 
     /**
@@ -35,15 +36,15 @@ class DB2Builder extends Builder
      */
     public function getColumnListing($table): array
     {
-        $sql = $this->grammar->compileColumnExists();
+        $sql      = $this->grammar->compileColumnExists();
         $database = $this->connection->getDatabaseName();
-        $table = $this->connection->getTablePrefix().$table;
+        $table    = $this->connection->getTablePrefix() . $table;
 
         $tableExploded = explode('.', $table);
 
         if (count($tableExploded) > 1) {
             $database = $tableExploded[0];
-            $table = $tableExploded[1];
+            $table    = $tableExploded[1];
         }
 
         $results = $this->connection->select($sql, [
@@ -51,8 +52,9 @@ class DB2Builder extends Builder
             $table,
         ]);
 
-        $res = $this->connection->getPostProcessor()
-                                ->processColumnListing($results);
+        $res = $this->connection
+            ->getPostProcessor()
+            ->processColumnListing($results);
 
         return array_values(array_map(function ($r) {
             return $r->column_name;
@@ -85,4 +87,5 @@ class DB2Builder extends Builder
 
         return new DB2Blueprint($table, $callback);
     }
+
 }

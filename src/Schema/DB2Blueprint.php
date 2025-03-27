@@ -8,6 +8,7 @@ use Illuminate\Database\Schema\Grammars\Grammar;
 
 class DB2Blueprint extends Blueprint
 {
+
     /**
      * The sequence number of reply list entries.
      *
@@ -28,7 +29,8 @@ class DB2Blueprint extends Blueprint
     /**
      * Set the sequence number of reply list entries.
      *
-     * @param  int  $replyListSequenceNumber
+     * @param   int  $replyListSequenceNumber
+     *
      * @return void
      */
     public function setReplyListSequenceNumber(int $replyListSequenceNumber)
@@ -39,8 +41,9 @@ class DB2Blueprint extends Blueprint
     /**
      * Get the raw SQL statements for the blueprint.
      *
-     * @param  \Illuminate\Database\Connection  $connection
-     * @param  \Illuminate\Database\Schema\Grammars\Grammar  $grammar
+     * @param   \Illuminate\Database\Connection               $connection
+     * @param   \Illuminate\Database\Schema\Grammars\Grammar  $grammar
+     *
      * @return array
      */
     public function toSql(Connection $connection, Grammar $grammar)
@@ -53,7 +56,8 @@ class DB2Blueprint extends Blueprint
     /**
      * Add the commands that are necessary to DROP and Rename statements on IBMi.
      *
-     * @param  \Illuminate\Database\Connection  $connection
+     * @param   \Illuminate\Database\Connection  $connection
+     *
      * @return void
      */
     protected function addReplyListEntryCommands(Connection $connection)
@@ -67,7 +71,7 @@ class DB2Blueprint extends Blueprint
     /**
      * Specify a system name for the table.
      *
-     * @param  string  $systemName
+     * @param   string  $systemName
      */
     public function forSystemName($systemName)
     {
@@ -77,7 +81,8 @@ class DB2Blueprint extends Blueprint
     /**
      * Specify a label for the table.
      *
-     * @param  string  $label
+     * @param   string  $label
+     *
      * @return \Illuminate\Support\Fluent
      */
     public function label($label)
@@ -86,22 +91,83 @@ class DB2Blueprint extends Blueprint
     }
 
     /**
+     * Create a new numeric column on the table.
+     *
+     * @param   string  $column
+     * @param   int     $total
+     * @param   int     $places
+     *
+     * @return \Illuminate\Support\Fluent
+     */
+    public function numeric($column, $total = 8, $places = 2)
+    {
+        return $this->addColumn('numeric', $column, compact('total', 'places'));
+    }
+
+    /**
+     * ^NOTE: No idea what this col is for
+     */
+    public function synchro($index, $masterizable = false)
+    {
+        $this
+            ->string('id_sync', 20)
+            ->index($index);
+        $this->string('hashcode', 32);
+
+        if (true === $masterizable) {
+            $this
+                ->boolean('data_master')
+                ->default(true);
+        }
+    }
+
+    /**
+     * Create a new boolean column on the table.
+     *
+     * @param   string  $column
+     *
+     * @return \Illuminate\Support\Fluent
+     */
+    public function boolean($column)
+    {
+        $prefix = $this->table;
+        // Aucune utilité d'avoir le nom du schéma dans le préfixe de la contrainte check pour le type booléen
+        $schemaTable = explode('.', $this->table);
+
+        if (count($schemaTable) > 1) {
+            $prefix = $schemaTable[1];
+        }
+
+        return $this->addColumn('boolean', $column, ['prefix' => $prefix]);
+    }
+
+    /**
+     * ^NOTE: No idea what this col is for
+     */
+    public function dropSynchro($index)
+    {
+        $this->dropColumn('id_sync', 'hashcode');
+        $this->dropIndex($index);
+    }
+
+    /**
      * Add a new index command to the blueprint.
      *
-     * @param  string  $type
-     * @param  string|array  $columns
-     * @param  string  $index
+     * @param   string        $type
+     * @param   string|array  $columns
+     * @param   string        $index
+     *
      * @return \Illuminate\Support\Fluent
      */
     protected function indexCommand($type, $columns, $index, $algorithm = null)
     {
-        $columns = (array) $columns;
+        $columns = (array)$columns;
 
         switch ($type) {
             case 'index':
                 $indexSystem = false;
 
-                if (! is_null($index)) {
+                if ( ! is_null($index)) {
                     //$indexSystem = $index;
                 }
 
@@ -122,59 +188,4 @@ class DB2Blueprint extends Blueprint
         return $this->addCommand($type, compact('index', 'columns'));
     }
 
-    /**
-     * Create a new boolean column on the table.
-     *
-     * @param  string  $column
-     * @return \Illuminate\Support\Fluent
-     */
-    public function boolean($column)
-    {
-        $prefix = $this->table;
-        // Aucune utilité d'avoir le nom du schéma dans le préfixe de la contrainte check pour le type booléen
-        $schemaTable = explode('.', $this->table);
-
-        if (count($schemaTable) > 1) {
-            $prefix = $schemaTable[1];
-        }
-
-        return $this->addColumn('boolean', $column, ['prefix' => $prefix]);
-    }
-
-    /**
-     * Create a new numeric column on the table.
-     *
-     * @param  string  $column
-     * @param  int  $total
-     * @param  int  $places
-     * @return \Illuminate\Support\Fluent
-     */
-    public function numeric($column, $total = 8, $places = 2)
-    {
-        return $this->addColumn('numeric', $column, compact('total', 'places'));
-    }
-
-    /**
-     * ^NOTE: No idea what this col is for
-     */
-    public function synchro($index, $masterizable = false)
-    {
-        $this->string('id_sync', 20)
-             ->index($index);
-        $this->string('hashcode', 32);
-
-        if (true === $masterizable) {
-            $this->boolean('data_master')
-                 ->default(true);
-        }
-    }
-
-    /**
-     * ^NOTE: No idea what this col is for
-     */
-    public function dropSynchro($index)
-    {
-        $this->dropColumn('id_sync', 'hashcode');
-        $this->dropIndex($index);
-    }
 }

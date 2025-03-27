@@ -2,31 +2,48 @@
 
 namespace rebeluca\DB2Driver;
 
-use rebeluca\DB2Driver\Schema\DB2Builder;
-use rebeluca\DB2Driver\Schema\DB2SchemaGrammar;
 use Illuminate\Database\Connection;
 use PDO;
+use rebeluca\DB2Driver\Schema\DB2Builder;
+use rebeluca\DB2Driver\Schema\DB2SchemaGrammar;
 
 class DB2Connection extends Connection
 {
+
     /**
      * The name of the default schema.
      */
-    protected $defaultSchema;
+    protected string $defaultSchema;
 
     /**
      * The name of the current schema in use.
      */
-    protected $currentSchema;
+    protected string $currentSchema;
 
     public function __construct(
         PDO $pdo,
         string $database = '',
         string $tablePrefix = '',
-        array $config = []
-        ) {
+        array $config = [],
+    ) {
         parent::__construct($pdo, $database, $tablePrefix, $config);
         $this->currentSchema = $this->defaultSchema = strtoupper($config['schema'] ?? null);
+    }
+
+    /**
+     * Reset to default the current schema.
+     */
+    public function resetCurrentSchema(): void
+    {
+        $this->setCurrentSchema($this->getDefaultSchema());
+    }
+
+    /**
+     * Set the name of the current schema.
+     */
+    public function setCurrentSchema(string $schema): void
+    {
+        $this->statement('SET SCHEMA ?', [$schema !== "" ? strtoupper($schema) : "DEFAULT"]);
     }
 
     /**
@@ -35,22 +52,6 @@ class DB2Connection extends Connection
     public function getDefaultSchema(): string
     {
         return $this->defaultSchema;
-    }
-
-    /**
-     * Reset to default the current schema.
-     */
-    public function resetCurrentSchema()
-    {
-        $this->setCurrentSchema($this->getDefaultSchema());
-    }
-
-    /**
-     * Set the name of the current schema.
-     */
-    public function setCurrentSchema(string $schema)
-    {
-        $this->statement('SET SCHEMA ?', [$schema !== "" ? strtoupper($schema) : "DEFAULT"]);
     }
 
     /**
@@ -76,9 +77,9 @@ class DB2Connection extends Connection
     /**
      * @return \Illuminate\Database\Grammar
      */
-    protected function getDefaultQueryGrammar()
+    protected function getDefaultQueryGrammar(): \Illuminate\Database\Grammar
     {
-        $defaultGrammar = new DB2QueryGrammar;
+        $defaultGrammar = new DB2QueryGrammar();
 
         // If a date format was specified in constructor
         if (array_key_exists('date_format', $this->config)) {
@@ -98,7 +99,7 @@ class DB2Connection extends Connection
      */
     protected function getDefaultSchemaGrammar(): \Illuminate\Database\Grammar
     {
-        return new DB2SchemaGrammar;
+        return new DB2SchemaGrammar();
     }
 
     /**
@@ -106,6 +107,7 @@ class DB2Connection extends Connection
      */
     protected function getDefaultPostProcessor(): \Illuminate\Database\Query\Processors\Processor
     {
-        return new DB2Processor;
+        return new DB2Processor();
     }
+
 }

@@ -7,7 +7,8 @@ use Illuminate\Support\ServiceProvider;
 
 class DB2ServiceProvider extends ServiceProvider
 {
-    public function register()
+
+    public function register(): void
     {
         /**
          * Override any database connections using the 'db2' driver.
@@ -15,14 +16,10 @@ class DB2ServiceProvider extends ServiceProvider
         Connection::resolverFor('db2', function ($connection, $database, $prefix, $config) {
             $connector = new DB2Connector();
 
-            $connection = new DB2Connection(
-                $connector->connect($config),
-                $database,
-                $prefix,
-                $config
+            return new DB2Connection(
+                $connector->connect($config), $database, $prefix, $config,
             );
-
-            return $connection;
         });
     }
+
 }

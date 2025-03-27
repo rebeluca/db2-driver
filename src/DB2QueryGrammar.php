@@ -7,60 +7,47 @@ use Illuminate\Database\Query\Grammars\Grammar;
 
 class DB2QueryGrammar extends Grammar
 {
+
     /**
      * The format for database stored dates.
      *
      * @var string
      */
-    protected $dateFormat;
+    protected string $dateFormat;
 
     /**
      * Offset compatibility mode true triggers FETCH FIRST X ROWS and ROW_NUM behavior for older versions of DB2
      *
      * @var bool
      */
-    protected $offsetCompatibilityMode = true;
+    protected bool $offsetCompatibilityMode = true;
 
     /**
-     * Wrap a single string in keyword identifiers.
+     * Compile an exists statement into SQL.
      *
-     * @param  string  $value
+     * @param   \Illuminate\Database\Query\Builder  $query
+     *
      * @return string
      */
-    protected function wrapValue($value)
+    public function compileExists(Builder $query): string
     {
-        if ($value === '*') {
-            return $value;
-        }
+        $existsQuery = clone $query;
 
-        return str_replace('"', '""', $value);
-    }
+        $existsQuery->columns = [];
 
-    /**
-     * Compile the "limit" portions of the query.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  int  $limit
-     * @return string
-     */
-    protected function compileLimit(Builder $query, $limit)
-    {
-        if ($this->offsetCompatibilityMode) {
-            return "FETCH FIRST $limit ROWS ONLY";
-        }
-
-        return parent::compileLimit($query, $limit);
+        return $this->compileSelect($existsQuery->selectRaw('1 exists')->limit(1));
     }
 
     /**
      * Compile a select query into SQL.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param   \Illuminate\Database\Query\Builder  $query
+     *
      * @return string
      */
-    public function compileSelect(Builder $query)
+    public function compileSelect(Builder $query): string
     {
-        if (! $this->offsetCompatibilityMode) {
+        if ( ! $this->offsetCompatibilityMode) {
             return parent::compileSelect($query);
         }
 
@@ -83,16 +70,17 @@ class DB2QueryGrammar extends Grammar
     /**
      * Create a full ANSI offset clause for the query.
      *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $components
+     * @param   \Illuminate\Database\Query\Builder  $query
+     * @param   array                               $components
+     *
      * @return string
      */
-    protected function compileAnsiOffset(Builder $query, $components)
+    protected function compileAnsiOffset(Builder $query, $components): string
     {
         // An ORDER BY clause is required to make this offset query work, so if one does
         // not exist we'll just create a dummy clause to trick the database and so it
         // does not complain about the queries for not having an "order by" clause.
-        if (! isset($components['orders'])) {
+        if ( ! isset($components['orders'])) {
             $components['orders'] = 'order by 1';
         }
 
@@ -103,10 +91,10 @@ class DB2QueryGrammar extends Grammar
         // the "select" that will give back the row numbers on each of the records.
         $orderings = $components['orders'];
 
-        $columns = (! empty($components['columns']) ? $components['columns'].', ' : 'select');
+        $columns = (! empty($components['columns']) ? $components['columns'] . ', ' : 'select');
 
         if ($columns == 'select *, ' && $query->from) {
-            $columns = 'select '.$this->tablePrefix.$query->from.'.*, ';
+            $columns = 'select ' . $this->tablePrefix . $query->from . '.*, ';
         }
 
         $components['columns'] = $this->compileOver($orderings, $columns);
@@ -138,20 +126,22 @@ class DB2QueryGrammar extends Grammar
     /**
      * Compile the over statement for a table expression.
      *
-     * @param  string  $orderings
-     * @param    $columns
+     * @param   string  $orderings
+     * @param           $columns
+     *
      * @return string
      */
-    protected function compileOver($orderings, $columns)
+    protected function compileOver($orderings, $columns): string
     {
         return "{$columns} row_number() over ({$orderings}) as row_num";
     }
 
     /**
      * @param $query
+     *
      * @return string
      */
-    protected function compileRowConstraint($query)
+    protected function compileRowConstraint($query): string
     {
         $start = $query->offset + 1;
 
@@ -167,44 +157,14 @@ class DB2QueryGrammar extends Grammar
     /**
      * Compile a common table expression for a query.
      *
-     * @param  string  $sql
-     * @param  string  $constraint
+     * @param   string  $sql
+     * @param   string  $constraint
+     *
      * @return string
      */
-    protected function compileTableExpression($sql, $constraint)
+    protected function compileTableExpression($sql, $constraint): string
     {
         return "select * from ({$sql}) as temp_table where row_num {$constraint}";
-    }
-
-    /**
-     * Compile the "offset" portions of the query.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  int  $offset
-     * @return string
-     */
-    protected function compileOffset(Builder $query, $offset)
-    {
-        if ($this->offsetCompatibilityMode) {
-            return '';
-        }
-
-        return parent::compileOffset($query, $offset);
-    }
-
-    /**
-     * Compile an exists statement into SQL.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @return string
-     */
-    public function compileExists(Builder $query)
-    {
-        $existsQuery = clone $query;
-
-        $existsQuery->columns = [];
-
-        return $this->compileSelect($existsQuery->selectRaw('1 exists')->limit(1));
     }
 
     /**
@@ -212,7 +172,7 @@ class DB2QueryGrammar extends Grammar
      *
      * @return string
      */
-    public function getDateFormat()
+    public function getDateFormat(): string
     {
         return $this->dateFormat ?? parent::getDateFormat();
     }
@@ -222,7 +182,7 @@ class DB2QueryGrammar extends Grammar
      *
      * @param $dateFormat
      */
-    public function setDateFormat($dateFormat)
+    public function setDateFormat($dateFormat): void
     {
         $this->dateFormat = $dateFormat;
     }
@@ -232,7 +192,7 @@ class DB2QueryGrammar extends Grammar
      *
      * @param $bool
      */
-    public function setOffsetCompatibilityMode($bool)
+    public function setOffsetCompatibilityMode($bool): void
     {
         $this->offsetCompatibilityMode = $bool;
     }
@@ -240,11 +200,63 @@ class DB2QueryGrammar extends Grammar
     /**
      * Compile the SQL statement to define a savepoint.
      *
-     * @param  string  $name
+     * @param   string  $name
+     *
      * @return string
      */
-    public function compileSavepoint($name)
+    public function compileSavepoint($name): string
     {
-        return 'SAVEPOINT '.$name.' ON ROLLBACK RETAIN CURSORS';
+        return 'SAVEPOINT ' . $name . ' ON ROLLBACK RETAIN CURSORS';
     }
+
+    /**
+     * Wrap a single string in keyword identifiers.
+     *
+     * @param   string  $value
+     *
+     * @return string
+     */
+    protected function wrapValue($value): string
+    {
+        if ($value === '*') {
+            return $value;
+        }
+
+        return str_replace('"', '""', $value);
+    }
+
+    /**
+     * Compile the "limit" portions of the query.
+     *
+     * @param   \Illuminate\Database\Query\Builder  $query
+     * @param   int                                 $limit
+     *
+     * @return string
+     */
+    protected function compileLimit(Builder $query, $limit): string
+    {
+        if ($this->offsetCompatibilityMode) {
+            return "FETCH FIRST $limit ROWS ONLY";
+        }
+
+        return parent::compileLimit($query, $limit);
+    }
+
+    /**
+     * Compile the "offset" portions of the query.
+     *
+     * @param   \Illuminate\Database\Query\Builder  $query
+     * @param   int                                 $offset
+     *
+     * @return string
+     */
+    protected function compileOffset(Builder $query, $offset): string
+    {
+        if ($this->offsetCompatibilityMode) {
+            return '';
+        }
+
+        return parent::compileOffset($query, $offset);
+    }
+
 }

@@ -7,19 +7,24 @@ use Illuminate\Database\Connectors\ConnectorInterface;
 
 class DB2Connector extends Connector implements ConnectorInterface
 {
+
+    /**
+     * @throws \Exception
+     */
     public function connect(array $config): \PDO
     {
         $connection = $this->createConnection(
             $this->getDsn($config),
             $config,
-            $this->getOptions($config)
+            $this->getOptions($config),
         );
 
         if (isset($config['schema']) && $config['schema'] !== '') {
             $schema = $config['schema'];
 
-            $connection->prepare('set schema '.$schema)
-                       ->execute();
+            $connection
+                ->prepare('set schema ' . $schema)
+                ->execute();
         }
 
         return $connection;
@@ -48,4 +53,5 @@ class DB2Connector extends Connector implements ConnectorInterface
 
         return implode(';', $dsnParts);
     }
+
 }
